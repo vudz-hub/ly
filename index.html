@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ôn tập Vật Lí 9 - Trắc nghiệm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      color: #222;
+      line-height: 1.6;
+    }
+    header {
+      background: #01696f;
+      color: #fff;
+      padding: 12px 16px;
+      text-align: center;
+    }
+    main {
+      max-width: 960px;
+      margin: 16px auto 32px;
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin: 0 0 4px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .controls-left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    button {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background: #01696f;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    button.secondary {
+      background: #555;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .question-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .question-title {
+      font-weight: 600;
+    }
+    .question-part {
+      font-size: 0.85rem;
+      color: #555;
+    }
+    .question-text {
+      margin: 4px 0 8px;
+    }
+    .question-image {
+      margin: 6px 0 10px;
+      text-align: center;
+    }
+    .question-image img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .option-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .option-label:hover {
+      background: #f0f8ff;
+    }
+    .option-input {
+      margin-top: 3px;
+    }
+    .result-summary {
+      margin-top: 16px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: #f1f8e9;
+      border: 1px solid #c5e1a5;
+    }
+    .question-feedback {
+      margin-top: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .correct {
+      color: #2e7d32;
+    }
+    .incorrect {
+      color: #c62828;
+    }
+    .correct-answer-highlight {
+      border: 1px solid #2e7d32;
+      background: #e8f5e9;
+    }
+    .footer-note {
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: #555;
+    }
+    @media (max-width: 600px) {
+      main {
+        margin: 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ôn tập Kì 2 - Lý 9</h1>
+    <div>Đề trắc nghiệm như Azota – mỗi lần làm sẽ trộn câu hỏi và đáp án</div>
+  </header>
+  <main>
+    <div class="controls">
+      <div class="controls-left">
+        <button id="shuffleBtn" type="button">Trộn lại đề</button>
+        <button id="submitBtn" type="button">Nộp bài &amp; xem điểm</button>
+      </div>
+      <div>
+        <span id="statusText">Chưa nộp bài</span>
+      </div>
+    </div>
+
+    <div id="questionContainer"></div>
+
+    <div id="resultSummary" class="result-summary" style="display:none"></div>
+
+    <div class="footer-note">
+      Gợi ý sử dụng: Lưu file này cùng thư mục với <strong>hinh1.png</strong>, <strong>hinh2.png</strong>, <strong>hinh3.png</strong> để hiển thị đầy đủ các hình.
+    </div>
+  </main>
+
+  <script>
+    // Ngân hàng câu hỏi, đã rút gọn nội dung cho mục đích tự học.
+    // part: P1 = Phần I, P2 = Phần II, P3 = Phần III.
+    const QUESTION_BANK = [
+      // PHẦN I – Câu 1–10
+      {
+        id: 'P1-1',
+        part: 'Phần I',
+        text: 'Dòng điện gây tác dụng nhiệt KHÔNG dùng trong thiết bị nào?',
+        options: ['Máy sấy tóc', 'Máy bơm nước', 'Bóng đèn sợi đốt', 'Đèn halogen'],
+        correctIndex: 1
+      },
+      {
+        id: 'P1-2',
+        part: 'Phần I',
+        text: 'Trên một đoạn mạch chỉ có điện trở R, công thức tính công suất tiêu thụ điện năng là công thức nào?',
+        options: ['W = U.I.R', 'W = (U^2)/R.t', 'W = U.I.t', 'W = I^2.R.t'],
+        correctIndex: 0
+      },
+      {
+        id: 'P1-3',
+        part: 'Phần I',
+        text: 'Cho đoạn dây dẫn MN đặt trong từ trường của nam châm như hình. Khi nam châm chuyển động, lực từ tác dụng làm dây dẫn dịch chuyển như thế nào?',
+        image: 'hinh1.png',
+        options: [
+          'Dịch chuyển đoạn MN đứng yên',
+          'Dịch chuyển đoạn MN tịnh tiến xuống dưới',
+          'Dịch chuyển đoạn MN tịnh tiến lên trên',
+          'Dịch chuyển đoạn MN tịnh tiến theo phương ngang'
+        ],
+        correctIndex: 3
+      },
+      {
+        id: 'P1-4',
+        part: 'Phần I',
+        text: 'Trên đoạn mạch giữa hai đầu có hiệu điện thế U, cường độ dòng điện là I. Công suất của dòng điện trên đoạn mạch đó được tính bằng?',
+        options: ['P = U/I', 'P = I/U', 'P = U.I', 'P = U^2/I'],
+        correctIndex: 2
+      },
+      {
+        id: 'P1-5',
+        part: 'Phần I',
+        text: 'Dòng điện cảm ứng xuất hiện trong cuộn dây khi nào?',
+        options: [
+          'Nối hai đầu cuộn dây kín với ampe kế',
+          'Cuộn dây đặt đứng yên trong từ trường',
+          'Cuộn dây quay trong từ trường đều',
+          'Số đường sức từ xuyên qua tiết diện cuộn dây biến thiên'
+        ],
+        correctIndex: 3
+      },
+      {
+        id: 'P1-6',
+        part: 'Phần I',
+        text: 'Khi nào dưới dạng chuyển động quay đều của nam châm, trong dây dẫn kín xuất hiện dòng điện xoay chiều?',
+        options: [
+          'Đặt cuộn dây đứng yên còn nam châm quay quanh trục',
+          'Đặt nam châm đứng yên còn cuộn dây quay quanh trục',
+          'Đặt nhanh nam châm vào trong lòng cuộn dây rồi rút ra',
+          'Cho cuộn dây quay trong từ trường của nam châm để cắt đường sức từ'
+        ],
+        correctIndex: 3
+      },
+      {
+        id: 'P1-7',
+        part: 'Phần I',
+        text: 'Quạt điện hoạt động được là nhờ tác dụng nào của dòng điện xoay chiều?',
+        options: [
+          'Tác dụng hóa học',
+          'Tác dụng sinh lí',
+          'Chỉ có tác dụng phát sáng',
+          'Có cả tác dụng từ và tác dụng nhiệt'
+        ],
+        correctIndex: 3
+      },
+      {
+        id: 'P1-8',
+        part: 'Phần I',
+        text: 'Trong đoạn mạch mắc song song, công thức nào sau đây đúng?',
+        options: [
+          'I = I1 + I2 + ... + In',
+          'R = R1 + R2 + ... + Rn',
+          'U = U1 + U2 + ... + Un',
+          'I.R = U'
+        ],
+        correctIndex: 0
+      },
+      {
+        id: 'P1-9',
+        part: 'Phần I',
+        text: 'Trong đoạn mạch chỉ có tụ điện xoay chiều, dòng điện xoay chiều chủ yếu thể hiện tác dụng nào?',
+        options: ['Tác dụng nhiệt', 'Tác dụng hóa học', 'Tác dụng sinh lí', 'Tác dụng từ'],
+        correctIndex: 3
+      },
+      {
+        id: 'P1-10',
+        part: 'Phần I',
+        text: 'Trong đoạn mạch nối tiếp, phát biểu nào dưới đây là sai?',
+        options: [
+          'Điện trở tương đương bằng tổng các điện trở thành phần',
+          'Cường độ dòng điện như nhau tại mọi điểm',
+          'Hiệu điện thế hai đầu toàn mạch bằng tổng các hiệu điện thế thành phần',
+          'Hiệu điện thế hai đầu mỗi điện trở trong mạch nối tiếp có giá trị như nhau'
+        ],
+        correctIndex: 3
+      },
+
+      // PHẦN II – Đúng/Sai 11–22
+      {
+        id: 'P2-11',
+        part: 'Phần II',
+        text: 'Máy khử rung tim của bác sĩ dùng tác dụng nhiệt của dòng điện xoay chiều.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 1
+      },
+      {
+        id: 'P2-12',
+        part: 'Phần II',
+        text: 'Đèn sợi đốt phát sáng do dây tóc bị nung nóng bởi dòng điện xoay chiều.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 1
+      },
+      {
+        id: 'P2-13',
+        part: 'Phần II',
+        text: 'Đèn sợi đốt khi phát sáng cho thấy dòng điện xoay chiều có tác dụng nhiệt.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 0
+      },
+      {
+        id: 'P2-14',
+        part: 'Phần II',
+        text: 'Dòng điện xoay chiều chạy thẳng hay trong cuộn dây dẫn sinh ra từ trường biến thiên.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 0
+      },
+      {
+        id: 'P2-15',
+        part: 'Phần II',
+        text: 'Nếu hiệu điện thế hai đầu đoạn mạch không đổi, điện trở giảm thì cường độ dòng điện tăng.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 0
+      },
+      {
+        id: 'P2-16',
+        part: 'Phần II',
+        text: 'Khi mắc thêm điện trở song song vào mạch, cường độ dòng điện trong mạch chính tăng.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 1
+      },
+      {
+        id: 'P2-17',
+        part: 'Phần II',
+        text: 'Trong đoạn mạch mắc nối tiếp, hiệu điện thế tỉ lệ nghịch với điện trở mỗi đoạn.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 1
+      },
+      {
+        id: 'P2-18',
+        part: 'Phần II',
+        text: 'Trong đoạn mạch mắc song song, tổng cường độ dòng điện trong mạch chính bằng tổng các dòng điện nhánh.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 0
+      },
+      {
+        id: 'P2-19',
+        part: 'Phần II',
+        text: 'Trong đoạn mạch mắc song song, hiệu điện thế hai đầu đoạn mạch bằng hiệu điện thế từng nhánh.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 0
+      },
+      {
+        id: 'P2-20',
+        part: 'Phần II',
+        text: 'Ở trạm phát điện, động cơ không đồng bộ được dùng để phát điện xoay chiều.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 1
+      },
+      {
+        id: 'P2-21',
+        part: 'Phần II',
+        text: 'Cuộn sơ cấp và thứ cấp của máy biến thế hoạt động dựa trên hiện tượng cảm ứng điện từ.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 0
+      },
+      {
+        id: 'P2-22',
+        part: 'Phần II',
+        text: 'Khi số đường sức từ xuyên qua tiết diện cuộn dây tăng dần thì cảm ứng từ trong cuộn dây cũng tăng dần.',
+        options: ['Đúng', 'Sai'],
+        correctIndex: 0
+      },
+
+      // PHẦN III – Câu 1–10 (tự luận tính toán nhưng đổi thành trắc nghiệm kết quả)
+      {
+        id: 'P3-1',
+        part: 'Phần III',
+        text: 'Một thiết bị điện hoạt động bình thường ở hiệu điện thế 110 V, cường độ dòng điện 1,5 A. Công suất định mức gần đúng là?',
+        options: ['110 W', '150 W', '165 W', '220 W'],
+        correctIndex: 2
+      },
+      {
+        id: 'P3-2',
+        part: 'Phần III',
+        text: 'Một bàn là điện 220 V – 900 W hoạt động 1 giờ 15 phút. Nhiệt lượng tỏa ra (bỏ qua hao phí) xấp xỉ bằng?',
+        options: ['2 700 000 J', '3 600 000 J', '4 050 000 J', '4 484 000 J'],
+        correctIndex: 2
+      },
+      {
+        id: 'P3-3',
+        part: 'Phần III',
+        text: 'Một điện trở R = 30 Ω được mắc vào nguồn 240 V. Công suất tiêu thụ của điện trở là?',
+        options: ['120 W', '480 W', '960 W', '1920 W'],
+        correctIndex: 3
+      },
+      {
+        id: 'P3-4',
+        part: 'Phần III',
+        text: 'Trên nồi cơm điện 220 V – 750 W. Dòng điện chạy qua nồi khi hoạt động bình thường là?',
+        options: ['2,2 A', '3,0 A', '3,41 A', '4,1 A'],
+        correctIndex: 2
+      },
+      {
+        id: 'P3-5',
+        part: 'Phần III',
+        text: 'Hai điện trở 2 Ω và 6 Ω mắc nối tiếp, cường độ dòng điện qua mạch là 1,5 A. Hiệu điện thế hai đầu đoạn mạch là?',
+        options: ['3 V', '8 V', '12 V', '24 V'],
+        correctIndex: 2
+      },
+      {
+        id: 'P3-6',
+        part: 'Phần III',
+        text: 'Hai điện trở 16 Ω và 24 Ω mắc như hình, ampe kế chỉ 3,2 A. Cường độ dòng điện qua mỗi điện trở là (coi ampe kế có điện trở không đáng kể).',
+        image: 'hinh2.png',
+        options: [
+          'I1 = 1,2 A ; I2 = 2,0 A',
+          'I1 = 32/15 A ; I2 = 16/3 A',
+          'I1 = 16/3 A ; I2 = 32/15 A',
+          'I1 = 2 A ; I2 = 1,2 A'
+        ],
+        correctIndex: 1
+      },
+      {
+        id: 'P3-7',
+        part: 'Phần III',
+        text: 'Hai điện trở 25 Ω và 55 Ω mắc như hình vào nguồn 100 V. Hiệu điện thế giữa hai đầu điện trở 25 Ω là?',
+        image: 'hinh3.png',
+        options: ['25 V', '40 V', '60 V', '75 V'],
+        correctIndex: 1
+      },
+      {
+        id: 'P3-8',
+        part: 'Phần III',
+        text: 'Mạch gồm điện trở 36 Ω và 18 Ω mắc song song nối với nguồn, cường độ dòng điện mạch chính 7 A. Hiệu điện thế hai đầu đoạn mạch là?',
+        options: ['36 V', '48 V', '72 V', '84 V'],
+        correctIndex: 3
+      },
+      {
+        id: 'P3-9',
+        part: 'Phần III',
+        text: 'Trên một nồi cơm điện 220 V – 900 W. Khi hoạt động 1 giờ 15 phút, điện năng tiêu thụ là gần bằng?',
+        options: ['2,7.10^6 J', '3,6.10^6 J', '4,05.10^6 J', '4,484.10^6 J'],
+        correctIndex: 2
+      },
+      {
+        id: 'P3-10',
+        part: 'Phần III',
+        text: 'Hai bóng đèn 9 V – 3 W mắc song song vào nguồn 9 V. Cường độ dòng điện mạch chính và qua mỗi đèn là?',
+        options: [
+          'I = 0,5 A ; I1 = 0,25 A ; I2 = 0,25 A',
+          'I = 0,5 A ; I1 ≈ 0,33 A ; I2 ≈ 0,17 A',
+          'I = 1 A ; I1 = 0,5 A ; I2 = 0,5 A',
+          'I = 0,33 A ; I1 = 0,17 A ; I2 = 0,17 A'
+        ],
+        correctIndex: 1
+      }
+    ];
+
+    // Hàm trộn mảng Fisher–Yates
+    function shuffle(array) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // Sinh câu hỏi ra giao diện với thứ tự câu và thứ tự đáp án đã trộn
+    function renderQuestions() {
+      const container = document.getElementById('questionContainer');
+      container.innerHTML = '';
+
+      // Trộn thứ tự câu mỗi lần
+      const randomizedQuestions = shuffle(QUESTION_BANK).map((q, index) => {
+        const optionOrder = shuffle(q.options.map((opt, idx) => ({ text: opt, originalIndex: idx })));
+        return { ...q, displayIndex: index + 1, optionOrder };
+      });
+
+      // Lưu vào dataset toàn cục để chấm điểm
+      window.__renderedQuestions = randomizedQuestions;
+
+      randomizedQuestions.forEach((q) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.dataset.qid = q.id;
+
+        const header = document.createElement('div');
+        header.className = 'question-header';
+
+        const title = document.createElement('div');
+        title.className = 'question-title';
+        title.textContent = `Câu ${q.displayIndex}`;
+
+        const part = document.createElement('div');
+        part.className = 'question-part';
+        part.textContent = q.part;
+
+        header.appendChild(title);
+        header.appendChild(part);
+        card.appendChild(header);
+
+        const text = document.createElement('div');
+        text.className = 'question-text';
+        text.textContent = q.text;
+        card.appendChild(text);
+
+        if (q.image) {
+          const imgWrap = document.createElement('div');
+          imgWrap.className = 'question-image';
+          const img = document.createElement('img');
+          img.src = q.image;
+          img.alt = 'Hình minh họa cho câu hỏi';
+          img.loading = 'lazy';
+          imgWrap.appendChild(img);
+          card.appendChild(imgWrap);
+        }
+
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'options';
+
+        q.optionOrder.forEach((opt, idx) => {
+          const label = document.createElement('label');
+          label.className = 'option-label';
+
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = q.id;
+          input.value = opt.originalIndex; // lưu chỉ số đáp án gốc
+          input.className = 'option-input';
+
+          const span = document.createElement('span');
+          span.textContent = opt.text;
+
+          label.appendChild(input);
+          label.appendChild(span);
+          optionsDiv.appendChild(label);
+        });
+
+        card.appendChild(optionsDiv);
+
+        const fb = document.createElement('div');
+        fb.className = 'question-feedback';
+        fb.style.display = 'none';
+        card.appendChild(fb);
+
+        container.appendChild(card);
+      });
+
+      document.getElementById('resultSummary').style.display = 'none';
+      document.getElementById('statusText').textContent = 'Chưa nộp bài';
+    }
+
+    function gradeQuiz() {
+      const rendered = window.__renderedQuestions || [];
+      let correct = 0;
+      let answered = 0;
+
+      rendered.forEach((q) => {
+        const card = document.querySelector(`.question-card[data-qid="${q.id}"]`);
+        const selected = card.querySelector('input[type="radio"]:checked');
+        const fb = card.querySelector('.question-feedback');
+        fb.style.display = 'block';
+
+        const optionLabels = card.querySelectorAll('.option-label');
+        optionLabels.forEach((lb) => lb.classList.remove('correct-answer-highlight'));
+
+        const correctIndex = q.correctIndex;
+        const correctLabel = Array.from(optionLabels).find((lb) => {
+          const input = lb.querySelector('input');
+          return Number(input.value) === correctIndex;
+        });
+        if (correctLabel) correctLabel.classList.add('correct-answer-highlight');
+
+        if (selected) {
+          answered++;
+          const selectedIndex = Number(selected.value);
+          if (selectedIndex === correctIndex) {
+            correct++;
+            fb.textContent = 'Đúng';
+            fb.classList.remove('incorrect');
+            fb.classList.add('correct');
+          } else {
+            fb.textContent = 'Sai';
+            fb.classList.remove('correct');
+            fb.classList.add('incorrect');
+          }
+        } else {
+          fb.textContent = 'Chưa chọn đáp án';
+          fb.classList.remove('correct');
+          fb.classList.add('incorrect');
+        }
+      });
+
+      const total = rendered.length;
+      const score10 = (correct / total * 10).toFixed(2);
+      const summary = document.getElementById('resultSummary');
+      summary.style.display = 'block';
+      summary.innerHTML = `Đã trả lời ${answered}/${total} câu. <br> Số câu đúng: <strong>${correct}</strong>. Điểm quy đổi (thang 10): <strong>${score10}</strong>.`;
+
+      document.getElementById('statusText').textContent = 'Đã nộp bài – xem đáp án gợi ý bên dưới từng câu.';
+    }
+
+    document.getElementById('shuffleBtn').addEventListener('click', () => {
+      if (confirm('Trộn lại đề sẽ xóa toàn bộ lựa chọn hiện tại. Bạn có chắc không?')) {
+        renderQuestions();
+      }
+    });
+
+    document.getElementById('submitBtn').addEventListener('click', gradeQuiz);
+
+    // Khởi tạo lần đầu
+    renderQuestions();
+  </script>
+</body>
+</html>
